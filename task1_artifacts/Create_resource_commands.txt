@@ -1,0 +1,72 @@
+======================================================================================================================================================================
+$web1_region = "West Europe"
+$web2_region = "East US"
+$publicApi_region = "Canada Central"
+
+New-AzResourceGroup -Name "eShopOnWebAppServiceApplicationPublicApi" -Location $publicApi_region
+New-AzResourceGroup -Name "eShopOnWebAppServiceApplicationWeb1" -Location $web1_region
+New-AzResourceGroup -Name "eShopOnWebAppServiceApplicationWeb2" -Location $web2_region
+
+New-AzAppServicePlan -ResourceGroupName "eShopOnWebAppServiceApplicationWeb1" `
+                     -Name "web1_regionAppServicePlan" `
+                     -Location $web1_region `
+                     -Tier "Standard" `
+                     -WorkerSize "Small"
+New-AzAppServicePlan -ResourceGroupName "eShopOnWebAppServiceApplicationWeb2" `
+                     -Name "web2_regionAppServicePlan" `
+                     -Location $web2_region `
+                     -Tier "Standard" `
+                     -WorkerSize "Small"
+New-AzAppServicePlan -ResourceGroupName "eShopOnWebAppServiceApplicationPublicApi" `
+                     -Name "publicApi_regionAppServicePlan" `
+                     -Location $publicApi_region `
+                     -Tier "Standard" `
+                     -WorkerSize "Small"
+$web1_appServicePlan = Get-AzAppServicePlan -Name "web1_regionAppServicePlan" -ResourceGroupName "eShopOnWebAppServiceApplicationWeb1"
+$web2_appServicePlan = Get-AzAppServicePlan -Name "web2_regionAppServicePlan" -ResourceGroupName "eShopOnWebAppServiceApplicationWeb2"
+$publicApi_appServicePlan = Get-AzAppServicePlan -Name "publicApi_regionAppServicePlan" -ResourceGroupName "eShopOnWebAppServiceApplication"
+
+New-AzWebApp -Name "PublicApiGrpetr189853" -Location $publicApi_region -AppServicePlan $publicApi_appServicePlan -ResourceGroupName "eShopOnWebAppServiceApplicationPublicApi"
+New-AzWebApp -Name "Web1Grpetr189853" -Location $web1_region -AppServicePlan $web1_appServicePlan -ResourceGroupName "eShopOnWebAppServiceApplicationWeb1"
+New-AzWebApp -Name "Web2Grpetr189853" -Location $web2_region -AppServicePlan $web2_appServicePlan -ResourceGroupName "eShopOnWebAppServiceApplicationWeb2"
+
+=====================================================================================================================
+
+$publicApiApp = Get-AzWebApp -ResourceGroupName "eShopOnWebAppServiceApplicationPublicApi" -Name "PublicApiGrpetr189853"
+$web1_appApp = Get-AzWebApp -ResourceGroupName "eShopOnWebAppServiceApplicationWeb1" -Name "Web1Grpetr189853"
+$web2_appApp = Get-AzWebApp -ResourceGroupName "eShopOnWebAppServiceApplicationWeb2" -Name "Web2Grpetr189853"
+
+
+$slotName = "development"
+
+New-AzWebAppSlot -ResourceGroupName $publicApiApp.ResourceGroup -Name $publicApiApp.Name -Slot $slotName -AppServicePlan $publicApiApp.ServerFarmId
+New-AzWebAppSlot -ResourceGroupName $web1_appApp.ResourceGroup -Name $web1_appApp.Name -Slot $slotName -AppServicePlan $web1_appApp.ServerFarmId
+New-AzWebAppSlot -ResourceGroupName $web2_appApp.ResourceGroup -Name $web2_appApp.Name -Slot $slotName -AppServicePlan $web2_appApp.ServerFarmId
+
+$appSettings = @{
+    "ASPNETCORE_ENVIRONMENT" = "Development"
+}
+
+$publicApiAppSlotConfig = Get-AzWebAppSlot -ResourceGroupName $publicApiApp.ResourceGroup -Name $publicApiApp -Slot $slotName
+$web1_appAppSlotConfig = Get-AzWebAppSlot -ResourceGroupName $web1_appApp.ResourceGroup -Name $web1_appApp -Slot $slotName
+$web2_appAppSlotConfig = Get-AzWebAppSlot -ResourceGroupName $web2_appApp.ResourceGroup -Name $web2_appApp -Slot $slotName
+
+
+foreach ($key in $appSettings.Keys) {
+    $publicApiAppSlotConfig.SiteConfig.AppSettings[$key] = $appSettings[$key]
+}
+foreach ($key in $appSettings.Keys) {
+    $web1_appAppSlotConfig.SiteConfig.AppSettings[$key] = $appSettings[$key]
+}
+foreach ($key in $appSettings.Keys) {
+    $web2_appAppSlotConfig.SiteConfig.AppSettings[$key] = $appSettings[$key]
+}
+
+Set-AzWebAppSlot -ResourceGroupName $resourceGroupName -Name $publicApiApp.ResourceGroup -Slot $slotName -SiteConfig $publicApiAppSlotConfig.SiteConfig
+Set-AzWebAppSlot -ResourceGroupName $resourceGroupName -Name $web1_appApp.ResourceGroup -Slot $slotName -SiteConfig $web1_appAppSlotConfig.SiteConfig
+Set-AzWebAppSlot -ResourceGroupName $resourceGroupName -Name $web2_appApp.ResourceGroup -Slot $slotName -SiteConfig $web2_appAppSlotConfig.SiteConfig
+
+
+Remove-AzResourceGroup -Name "eShopOnWebAppServiceApplicationPublicApi"
+Remove-AzResourceGroup -Name "eShopOnWebAppServiceApplicationWeb1"
+Remove-AzResourceGroup -Name "eShopOnWebAppServiceApplicationWeb2"
