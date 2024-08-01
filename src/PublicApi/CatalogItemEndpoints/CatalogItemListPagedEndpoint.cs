@@ -2,12 +2,16 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
 using Microsoft.eShopWeb.ApplicationCore.Specifications;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Abstractions;
 using MinimalApi.Endpoint;
 
 namespace Microsoft.eShopWeb.PublicApi.CatalogItemEndpoints;
@@ -19,11 +23,13 @@ public class CatalogItemListPagedEndpoint : IEndpoint<IResult, ListPagedCatalogI
 {
     private readonly IUriComposer _uriComposer;
     private readonly IMapper _mapper;
+    private readonly ILogger<CatalogItemListPagedEndpoint> _logger;
 
-    public CatalogItemListPagedEndpoint(IUriComposer uriComposer, IMapper mapper)
+    public CatalogItemListPagedEndpoint(IUriComposer uriComposer, IMapper mapper, ILogger<CatalogItemListPagedEndpoint> logger)
     {
         _uriComposer = uriComposer;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public void AddRoute(IEndpointRouteBuilder app)
@@ -44,6 +50,8 @@ public class CatalogItemListPagedEndpoint : IEndpoint<IResult, ListPagedCatalogI
 
         var filterSpec = new CatalogFilterSpecification(request.CatalogBrandId, request.CatalogTypeId);
         int totalItems = await itemRepository.CountAsync(filterSpec);
+        DateTime localDate = DateTime.Now;
+        if (_logger != null) _logger.LogInformation($"{localDate.ToString()} Number of items fetched from database: {totalItems}");
 
         var pagedSpec = new CatalogFilterPaginatedSpecification(
             skip: request.PageIndex * request.PageSize,
@@ -67,7 +75,18 @@ public class CatalogItemListPagedEndpoint : IEndpoint<IResult, ListPagedCatalogI
         {
             response.PageCount = totalItems > 0 ? 1 : 0;
         }
-
+        TelemetryConfiguration configuration = TelemetryConfiguration.CreateDefault();
+        TelemetryClient telemetryClient = new TelemetryClient(configuration);
+        try
+        {
+            throw new Exception("Cannot move further");
+        }
+        catch (Exception ex)
+        {
+            telemetryClient.TrackException(ex);
+        }
         return Results.Ok(response);
+
+        
     }
 }

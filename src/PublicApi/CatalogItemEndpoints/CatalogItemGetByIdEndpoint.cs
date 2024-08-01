@@ -1,9 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
 using Microsoft.eShopWeb.ApplicationCore.Interfaces;
+using Microsoft.Extensions.Logging;
 using MinimalApi.Endpoint;
 
 namespace Microsoft.eShopWeb.PublicApi.CatalogItemEndpoints;
@@ -14,10 +18,12 @@ namespace Microsoft.eShopWeb.PublicApi.CatalogItemEndpoints;
 public class CatalogItemGetByIdEndpoint : IEndpoint<IResult, GetByIdCatalogItemRequest, IRepository<CatalogItem>>
 {
     private readonly IUriComposer _uriComposer;
+    private readonly ILogger<CatalogItemGetByIdEndpoint> _logger;
 
-    public CatalogItemGetByIdEndpoint(IUriComposer uriComposer)
+    public CatalogItemGetByIdEndpoint(IUriComposer uriComposer, ILogger<CatalogItemGetByIdEndpoint> logger)
     {
         _uriComposer = uriComposer;
+        _logger = logger;
     }
 
     public void AddRoute(IEndpointRouteBuilder app)
@@ -34,7 +40,9 @@ public class CatalogItemGetByIdEndpoint : IEndpoint<IResult, GetByIdCatalogItemR
     public async Task<IResult> HandleAsync(GetByIdCatalogItemRequest request, IRepository<CatalogItem> itemRepository)
     {
         var response = new GetByIdCatalogItemResponse(request.CorrelationId());
+        DateTime localDate = DateTime.Now;
 
+        if (_logger != null) _logger.LogInformation($"{localDate.ToString("en-US")} Fetched Item from catalog by Id");
         var item = await itemRepository.GetByIdAsync(request.CatalogItemId);
         if (item is null)
             return Results.NotFound();

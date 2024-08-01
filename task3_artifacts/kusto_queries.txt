@@ -1,0 +1,9 @@
+Kusto query to filter last hour logs
+traces 
+| where timestamp > ago(1h)
+
+Kusto query number of exceptions with text "Cannot move further" for last hour
+exceptions
+| where timestamp > ago(1h)
+| where outerMessage contains "Cannot move further"
+| summarize count()

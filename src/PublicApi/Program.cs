@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using BlazorShared;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -176,6 +178,20 @@ app.MapControllers();
 app.MapEndpoints();
 
 app.Logger.LogInformation("LAUNCHING PublicApi");
-app.Run();
+app.Run(async (context) =>
+{
+    TelemetryConfiguration configuration = TelemetryConfiguration.CreateDefault();
+    TelemetryClient telemetryClient = new TelemetryClient(configuration);
+    try
+    {
+        throw new Exception("Cannot move further");
+
+    }
+    catch (Exception ex)
+    {
+        telemetryClient.TrackException(ex);
+        throw new Exception();
+    }
+});
 
 public partial class Program { }
