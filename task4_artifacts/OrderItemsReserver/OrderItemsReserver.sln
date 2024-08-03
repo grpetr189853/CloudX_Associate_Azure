@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderItemsReserver", "OrderItemsReserver\OrderItemsReserver.csproj", "{70C3D56E-FC1B-4C78-A7CD-32915B66BF56}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{70C3D56E-FC1B-4C78-A7CD-32915B66BF56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70C3D56E-FC1B-4C78-A7CD-32915B66BF56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70C3D56E-FC1B-4C78-A7CD-32915B66BF56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70C3D56E-FC1B-4C78-A7CD-32915B66BF56}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A12310A7-BFC4-43C8-AB97-5DC2F3D32741}
+	EndGlobalSection
+EndGlobal
