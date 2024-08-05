@@ -1,0 +1,13 @@
+C:\Users\grpet\source\repos\eShopOnWebApp>
+ 1. Insert into appsettings.json connection string for databases:
+ 2. Delete result of previous migrations(folder Migrations)
+ 3. Run Migrations
+ dotnet ef migrations add InitialCreate --context Microsoft.eShopWeb.Infrastructure.Data.CatalogContext --project src\Infrastructure --startup-project src\PublicApi
+ dotnet ef database update --context Microsoft.eShopWeb.Infrastructure.Data.CatalogContext  --project src\Infrastructure --startup-project src\PublicApi
+ dotnet ef migrations add InitialCreate --context Microsoft.eShopWeb.Infrastructure.Identity.AppIdentityDbContext --project src\Infrastructure --startup-project src\PublicApi
+ dotnet ef database update --context Microsoft.eShopWeb.Infrastructure.Identity.AppIdentityDbContext  --project src\Infrastructure --startup-project src\PublicApi
+ 4. Add network/firewall rules into server configuration in Azure Portal to accept connection from PublicApi and Web
+ 5. Create CosmosDb instance
+ 6. Create function
+ 7. Modify OrderService
+ 8. Place all needed keys and connection strings
