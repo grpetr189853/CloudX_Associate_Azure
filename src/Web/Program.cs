@@ -18,29 +18,55 @@ using Microsoft.eShopWeb.Web;
 using Microsoft.eShopWeb.Web.Configuration;
 using Microsoft.eShopWeb.Web.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddConsole();
 
-if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Docker"){
-    // Configure SQL Server (local)
-    Microsoft.eShopWeb.Infrastructure.Dependencies.ConfigureServices(builder.Configuration, builder.Services);
-}
-else{
-    // Configure SQL Server (prod)
-    var credential = new ChainedTokenCredential(new AzureDeveloperCliCredential(), new DefaultAzureCredential());
-    builder.Configuration.AddAzureKeyVault(new Uri(builder.Configuration["AZURE_KEY_VAULT_ENDPOINT"] ?? ""), credential);
+//if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Docker")
+//{
+//    // Configure SQL Server (local)
+//    Microsoft.eShopWeb.Infrastructure.Dependencies.ConfigureServices(builder.Configuration, builder.Services);
+//}
+//else
+//{
+
+// Configure SQL Server (prod)
+var credential = new ChainedTokenCredential(new AzureDeveloperCliCredential(), new DefaultAzureCredential());
+    builder.Configuration.AddAzureKeyVault(new Uri(builder.Configuration["KeyVaultUri"] ?? ""), credential);
+    string keyVaultUri = builder.Configuration["KeyVaultUri"];
+    var secretClient = new SecretClient(new Uri(keyVaultUri), credential);
+    // Retrieve the connection string secrets from Azure Key Vault
+    KeyVaultSecret catalogConnectionStringSecret = await secretClient.GetSecretAsync("CatalogConnectionString");
+    string catalogConnectionString = catalogConnectionStringSecret.Value;
+
+    KeyVaultSecret identityConnectionStringSecret = await secretClient.GetSecretAsync("IdentityConnectionString");
+    string identityConnectionString = identityConnectionStringSecret.Value;
+    /*
     builder.Services.AddDbContext<CatalogContext>(c =>
     {
-        var connectionString = builder.Configuration[builder.Configuration["AZURE_SQL_CATALOG_CONNECTION_STRING_KEY"] ?? ""];
+        var connectionString = builder.Configuration[builder.Configuration["CatalogConnectionString"] ?? ""];
         c.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
     });
     builder.Services.AddDbContext<AppIdentityDbContext>(options =>
     {
-        var connectionString = builder.Configuration[builder.Configuration["AZURE_SQL_IDENTITY_CONNECTION_STRING_KEY"] ?? ""];
+        var connectionString = builder.Configuration[builder.Configuration["IdentityConnectionString"] ?? ""];
         options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
     });
-}
+    */
+    
+    builder.Services.AddDbContext<CatalogContext>(c =>
+    {
+        c.UseSqlServer(catalogConnectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
+    });
+
+    builder.Services.AddDbContext<AppIdentityDbContext>(options =>
+    {
+        options.UseSqlServer(identityConnectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
+    });
+    
+//}
 
 builder.Services.AddCookieSettings();
 
@@ -199,4 +225,7 @@ app.MapHealthChecks("api_health_check", new HealthCheckOptions { Predicate = che
 app.MapFallbackToFile("index.html");
 
 app.Logger.LogInformation("LAUNCHING");
+app.Logger.LogInformation($"CatalogConnectionString {catalogConnectionString}");
+app.Logger.LogInformation($"IdentityConnectionString {identityConnectionString}");
+
 app.Run();

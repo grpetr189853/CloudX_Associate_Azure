@@ -1,0 +1,5 @@
+1. Create database
+2. Create key vault
+3. Add key vault configuration in appsettings.json
+4. Deploy application
+5. Add assignement for key vault key vault administrator key vault reader key vault key vault secret user

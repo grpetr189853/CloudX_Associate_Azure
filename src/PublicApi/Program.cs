@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using BlazorShared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -128,17 +131,31 @@ app.Logger.LogInformation("PublicApi App created...");
 
 app.Logger.LogInformation("Seeding Database...");
 
+var credential = new ChainedTokenCredential(new AzureDeveloperCliCredential(), new DefaultAzureCredential());
+builder.Configuration.AddAzureKeyVault(new Uri(builder.Configuration["KeyVaultUri"] ?? ""), credential);
+string keyVaultUri = builder.Configuration["KeyVaultUri"];
+var secretClient = new SecretClient(new Uri(keyVaultUri), credential);
+
 using (var scope = app.Services.CreateScope())
 {
+    var catalogConnectionString = builder.Configuration.GetConnectionString("CatalogConnectionString");
+    var identityConnectionString = builder.Configuration.GetConnectionString("IdentityConnectionString");
+
+    // Use the connection strings in your code
     var scopedProvider = scope.ServiceProvider;
     try
     {
         var catalogContext = scopedProvider.GetRequiredService<CatalogContext>();
+        catalogContext.Database.UseNpgsql(catalogConnectionString);
+
+        var identityContext = scopedProvider.GetRequiredService<AppIdentityDbContext>();
+        identityContext.Database.UseNpgsql(identityConnectionString);
+        //var catalogContext = scopedProvider.GetRequiredService<CatalogContext>();
         await CatalogContextSeed.SeedAsync(catalogContext, app.Logger);
 
         var userManager = scopedProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scopedProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var identityContext = scopedProvider.GetRequiredService<AppIdentityDbContext>();
+        //var identityContext = scopedProvider.GetRequiredService<AppIdentityDbContext>();
         await AppIdentityDbContextSeed.SeedAsync(identityContext, userManager, roleManager);
     }
     catch (Exception ex)
