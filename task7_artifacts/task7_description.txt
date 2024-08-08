@@ -1,0 +1,6 @@
+1. Create resource group
+2. Create service bus namespace and queue
+3. Create azure function
+4. Make changes into app and deploy it to Azure
+5. create logic app
+6. Check everything
