@@ -13,6 +13,8 @@ services:
     build:
       context: .
       dockerfile: src/PublicApi/Dockerfile
+    environment:
+      - DEBUG=True
     depends_on:
       - "sqlserver"
   sqlserver:
