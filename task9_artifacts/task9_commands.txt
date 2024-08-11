@@ -1,0 +1,9 @@
+1. Read the project README.md
+2. Create microsoft entra id - app registration how thats was told by readme.md
+3. Rename the project so that the name doesnt end with dotnet
+4. Write in project appsettings.json client id tenant id and directory tenant
+5. Choose the project arhitecture and publish the project
+6. In App Service settings change in Advanced Settings Kudu console change the web.config how it is told in 
+stackowerflow https://stackoverflow.com/questions/55939860/how-to-fix-error-ancm-in-process-handler-load-failure
+7. Publish the application and change the settings in app.settings.json and localsettings.json
+8. Check that everithing is correct and we can register to the site
